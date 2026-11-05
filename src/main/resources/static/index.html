@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Helmet Safety Monitoring</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b1220;
+    color: #f1f5f9;
+    padding: 28px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header h1 {
+    font-size: 25px;
+    color: #38bdf8;
+}
+
+.header p {
+    color: #94a3b8;
+    margin-top: 8px;
+}
+
+.live {
+    color: #4ade80;
+    background: #123326;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.status-box {
+    background: #17243a;
+    padding: 25px;
+    border-radius: 14px;
+    margin-bottom: 25px;
+    border: 1px solid #263b58;
+}
+
+.status-box h3 {
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.status {
+    font-size: 32px;
+    font-weight: bold;
+    color: #4ade80;
+}
+
+.status.warning {
+    color: #facc15;
+}
+
+.status.emergency {
+    color: #f87171;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: #17243a;
+    border: 1px solid #263b58;
+    padding: 23px;
+    border-radius: 14px;
+}
+
+.card .icon {
+    font-size: 27px;
+    margin-bottom: 15px;
+}
+
+.card h3 {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 15px;
+}
+
+.value {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.unit {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.normal {
+    color: #4ade80;
+}
+
+.warning-text {
+    color: #facc15;
+}
+
+.danger {
+    color: #f87171;
+}
+
+.alert-box {
+    background: #17243a;
+    border: 1px solid #263b58;
+    padding: 23px;
+    margin-top: 25px;
+    border-radius: 14px;
+}
+
+.alert-box h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.alert-message {
+    color: #cbd5e1;
+    padding: 13px;
+    background: #101c30;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 35px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+@media(max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 500px) {
+    body {
+        padding: 15px;
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div>
+        <h1>🪖 SMART HELMET</h1>
+        <p>Industrial Worker Safety Monitoring System</p>
+    </div>
+    <div class="live">● SYSTEM MONITORING</div>
+</div>
+
+<div class="status-box">
+    <h3>OVERALL HELMET SAFETY STATUS</h3>
+    <div class="status" id="helmetStatus">CONNECTING...</div>
+    <p id="alertMessage" style="color:#94a3b8;margin-top:12px;">
+        Waiting for sensor data...
+    </p>
+</div>
+
+<div class="grid">
+
+    <div class="card">
+        <div class="icon">🌡️</div>
+        <h3>TEMPERATURE</h3>
+        <div class="value" id="temperature">--</div>
+        <span class="unit">Degree Celsius</span>
+    </div>
+
+    <div class="card">
+        <div class="icon">⚡</div>
+        <h3>IMPACT DETECTION</h3>
+        <div class="value" id="impact">--</div>
+        <span class="unit">Impact sensor</span>
+    </div>
+
+    <div class="card">
+        <div class="icon">🏃</div>
+        <h3>MOTION STATUS</h3>
+        <div class="value" id="motion">--</div>
+        <span class="unit">Movement detection</span>
+    </div>
+
+    <div class="card">
+        <div class="icon">☁️</div>
+        <h3>GAS LEVEL</h3>
+        <div class="value" id="gas">--</div>
+        <span class="unit">PPM</span>
+    </div>
+
+</div>
+
+<div class="alert-box">
+    <h2>🚨 SAFETY ALERTS</h2>
+    <div id="alertHistory">
+        <div class="alert-message">Waiting for first sensor reading...</div>
+    </div>
+</div>
+
+<div class="footer">
+    Smart Helmet Safety Monitoring System | Java + Maven + Jenkins
+    <p id="lastUpdate" style="margin-top:8px;">Last update: Waiting...</p>
+</div>
+
+<script>
+
+const history = [];
+
+function updateValue(id, value, className) {
+    const element = document.getElementById(id);
+    element.textContent = value;
+    element.className = "value " + (className || "");
+}
+
+function updateDashboard(data) {
+
+    updateValue(
+        "temperature",
+        data.temperature + " °C",
+        data.temperature >= 40 ? "danger" : "normal"
+    );
+
+    updateValue(
+        "impact",
+        data.impactDetected ? "DETECTED" : "NORMAL",
+        data.impactDetected ? "danger" : "normal"
+    );
+
+    updateValue(
+        "motion",
+        data.motionDetected ? "ACTIVE" : "INACTIVE",
+        "normal"
+    );
+
+    updateValue(
+        "gas",
+        data.gasLevel + " PPM",
+        data.gasLevel >= 300 ? "danger" : "normal"
+    );
+
+    const status = document.getElementById("helmetStatus");
+    status.textContent = data.status;
+    status.className = "status";
+
+    if (data.status === "WARNING") {
+        status.classList.add("warning");
+    } else if (data.status === "EMERGENCY") {
+        status.classList.add("emergency");
+    }
+
+    document.getElementById("alertMessage").textContent =
+        data.alert;
+
+    history.unshift(data.alert);
+
+    if (history.length > 5) {
+        history.pop();
+    }
+
+    document.getElementById("alertHistory").innerHTML =
+        history.map(message =>
+            `<div class="alert-message"></div>`
+        ).map((element, index) => {
+            return `<div class="alert-message">${history[index]}</div>`;
+        }).join("");
+
+    document.getElementById("lastUpdate").textContent =
+        "Last update: " + new Date().toLocaleTimeString();
+}
+
+async function fetchSensorData() {
+
+    try {
+        const response = await fetch("/api/sensor");
+
+        if (!response.ok) {
+            throw new Error("Server response error");
+        }
+
+        const data = await response.json();
+
+        updateDashboard(data);
+
+    } catch (error) {
+        document.getElementById("helmetStatus").textContent =
+            "SERVER DISCONNECTED";
+
+        document.getElementById("helmetStatus").className =
+            "status emergency";
+
+        document.getElementById("alertMessage").textContent =
+            "Unable to connect to Java backend.";
+    }
+}
+
+fetchSensorData();
+setInterval(fetchSensorData, 2000);
+
+</script>
+
+</body>
+</html>
